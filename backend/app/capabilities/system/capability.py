@@ -9,7 +9,7 @@ class SystemCapability(Capability):
     description = "Provides system-level information and diagnostics."
 
     actions = {
-        "info": {
+        "get_info": {
             "description": "Get operating system information.",
             "parameters": {},
             "dangerous": False,
@@ -18,12 +18,17 @@ class SystemCapability(Capability):
 
     permissions = ["system:read"]
 
-    def execute(self, action: str, parameters: dict[str, Any]) -> Any:
-        if action == "info":
+    async def execute(
+        self,
+        action: str,
+        parameters: dict[str, Any],
+    ) -> Any:
+        if action == "get_info":
             return {
                 "os": platform.system(),
                 "release": platform.release(),
                 "machine": platform.machine(),
+                "python_version": platform.python_version(),
             }
 
         raise ValueError(f"Unknown system action: {action}")
