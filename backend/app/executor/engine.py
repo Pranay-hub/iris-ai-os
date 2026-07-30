@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from app.memory.manager import MemoryManager
 from typing import Any
 
 from app.executor.intent_resolver import (
@@ -19,12 +19,14 @@ class ExecutionEngine:
         registry: CapabilityRegistry,
         intent_resolver: IntentResolver | None = None,
         permission_manager: PermissionManager | None = None,
+        memory_manager: MemoryManager | None = None,
     ) -> None:
-        self._registry = registry
-        self._intent_resolver = intent_resolver or IntentResolver()
-        self._permission_manager = (
-            permission_manager or PermissionManager()
-        )
+       self._registry = registry
+       self._intent_resolver = intent_resolver or IntentResolver()
+       self._permission_manager = (
+        permission_manager or PermissionManager()
+    )
+       self._memory_manager = memory_manager or MemoryManager()
 
     async def execute(
         self,
@@ -57,12 +59,12 @@ class ExecutionEngine:
 
         # 3. Find the requested capability.
         try:
-            capability = self._registry.get(intent.capability)
+          capability = self._registry.get(intent.capability)
         except ValueError as exc:
-            return self._error_response(
-                error_code="CAPABILITY_NOT_FOUND",
-                message=str(exc),
-                intent=intent,
+           return self._error_response(
+        error_code="CAPABILITY_NOT_FOUND",
+        message=str(exc),
+        intent=intent,
     )
 
         # 4. Execute the capability action.
@@ -77,6 +79,14 @@ class ExecutionEngine:
                 message=str(exc),
                 intent=intent,
             )
+        self._memory_manager.set_session(
+    "last_intent",
+    self._serialize_intent(intent),
+)
+        self._memory_manager.set_session(
+    "last_result",
+    result,
+)
 
         return {
             "success": True,
